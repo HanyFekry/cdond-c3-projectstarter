@@ -10,8 +10,8 @@ defaults: &defaults
 
 jobs:
   deploy:
-    executor:
-      name: node/default
+    docker:
+      - image: cimg/node:13.8.0
     steps:
       - checkout
       - node/install-packages
