@@ -86,13 +86,12 @@ jobs:
       - restore_cache:
           keys: [backend-build]
       - run:
-          name: scan back-end
+          name: scan back end
           command: |
             cd backend
             npm install
             npm audit fix --audit-level=critical --force
             npm audit fix --force
-#            If the "npm audit fix" command above could not fix all critical vulnerabilities, try “npm audit fix --force” again
             npm audit --audit-level=critical
 
 workflows:
