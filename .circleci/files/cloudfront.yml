@@ -5,6 +5,7 @@ Parameters:
   WorkflowID:
     Description: Unique identifier.
     Type: String
+    Default: udapeople-hany123
 
 
 Resources:
