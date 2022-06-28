@@ -224,10 +224,10 @@ jobs:
       - Checkout
       - restore_cache:
           keys: [frontend-build]
-      - run:
-          name: Install dependencies
-          command: |
-            # your code here
+      # - run:
+      #     name: Install dependencies
+      #     command: |
+      #       # your code here
       - run:
           name: Get backend url
           command: |
@@ -300,3 +300,4 @@ workflows:
       - deploy-frontend:
           requires:
             - build-frontend
+            - configure_infrastructure
