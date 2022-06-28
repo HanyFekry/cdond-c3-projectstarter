@@ -12,23 +12,23 @@
     state: latest
     update_cache: yes
 
-# - name: "install nodejs."
-#   become: true
-#   shell: |
-#     sudo yum install -y gcc-c++ make
-#     curl -sL https://rpm.nodesource.com/setup_16.x | sudo -E bash -
-#     sudo yum install -y nodejs
+- name: "install nodejs."
+  become: true
+  shell: |
+    sudo yum install -y gcc-c++ make
+    curl -sL https://rpm.nodesource.com/setup_16.x | sudo -E bash -
+    sudo yum install -y nodejs
 # #    sudo yum install nodejs npm --skip-broken 
 
-- name: "install nodejs"
-  become: true
-  yum:
-    name: 
-      - nodejs
-    state: latest
-#    skip_broken: yes
-    lock_timeout: 60
-    update_cache: yes
+# - name: "install nodejs"
+#   become: true
+#   yum:
+#     name: 
+#       - nodejs
+#     state: latest
+# #    skip_broken: yes
+#     lock_timeout: 60
+#     update_cache: yes
 
 - name: "install pm"
   become: true
