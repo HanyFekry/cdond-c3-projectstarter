@@ -15,7 +15,7 @@
   pre_tasks:
     - name: wait for server
       wait_for_connection:
-        timeout: 60 # 600
+        timeout: 120 # 600
     # # - name: install python 3 for ansible
     # #   become: true
     # #   shell: |
