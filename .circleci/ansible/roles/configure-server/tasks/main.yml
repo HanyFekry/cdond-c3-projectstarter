@@ -25,7 +25,6 @@
   yum:
     name: 
       - nodejs
-      - npm
     state: latest
 #    skip_broken: yes
     lock_timeout: 60
