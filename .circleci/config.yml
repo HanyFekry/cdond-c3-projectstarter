@@ -160,6 +160,7 @@ jobs:
       - run:
           name: Add back-end ip to ansible inventory
           command: |
+            sudo echo [all] > .circleci/ansible/inventory.txt
             aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text >> .circleci/ansible/inventory.txt
@@ -170,8 +171,28 @@ jobs:
       - destroy-environment:
               back-stack: "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
               front-stack: "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
-
       # Here's where you will add some code to rollback on failur
+
+  configure_infrastructure: 
+    docker:
+      - image: python:3.10.5-alpine3.15
+    steps:
+      - checkout
+      - add_ssh_keys: 
+          fingerprints: ["3c:f4:1e:07:f1:e8:1e:0f:bd:e3:55:cd:b4:54:8b:1c"]
+      - attach_workspace:
+          at: ~/
+      - run:
+          name: install dependencies on ubuntu
+          command: |
+            yum install -y tar gzip
+            apk add --update ansible
+      - run: 
+          name: play playbook
+          command: |
+            cd .circleci/ansible
+            ansible-playbook -i inventory.txt configure-server.yml
+#            ansible-playbook -i inventory.txt playbook.yml
 
 workflows:
   # deploy_and_notify:
@@ -195,3 +216,6 @@ workflows:
           requires:
             - build-backend
       - deploy_infrastructure
+      - configure_infrastructure:
+          requires:
+            - deploy_infrastructure      
