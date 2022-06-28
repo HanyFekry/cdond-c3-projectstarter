@@ -1,7 +1,11 @@
 ---
+- name: create app dir
+  file:
+    path: /home/ec2-user/app
+    state: directory
 - name: unzip artifact
   shell: |
-    tar –xvzf artifact.tar.gz
+    tar –xvzf artifact.tar.gz -c /home/ec2-user/app
 - name: start back-end
   shell: |
     pm2 stop default
