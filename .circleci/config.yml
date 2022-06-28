@@ -217,6 +217,6 @@ workflows:
       #     requires:
       #       - build-backend
 #      - deploy_infrastructure
-      - configure_infrastructure:
+      - configure_infrastructure
           # requires:
           #   - deploy_infrastructure      
