@@ -220,17 +220,19 @@ jobs:
 
   deploy-frontend:
     docker:
-      - image: amazon/aws-cli
+      - image: cimg/node:lts
     steps:
       - checkout
       - restore_cache:
           keys: [frontend-build]
       - run:
           name: Install dependencies
-          command: |            
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
-            . ~/.nvm/nvm.sh
-            nvm install --lts
+          command: |  
+            sudo apt-get update
+            sudo apt-get install awscli          
+#            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
+#            . ~/.nvm/nvm.sh
+#            nvm install --lts
 
       - run:
           name: Get backend url
