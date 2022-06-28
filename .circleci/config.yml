@@ -226,7 +226,7 @@ jobs:
       - restore_cache:
           keys: [frontend-build]
       - run:
-          name: Install dependencies
+          name: Install aws cli dependencies
           command: |  
             sudo apt-get update
             sudo apt-get install awscli          
