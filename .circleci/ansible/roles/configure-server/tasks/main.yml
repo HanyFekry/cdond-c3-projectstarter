@@ -5,6 +5,13 @@
     name: '*'
     state: latest
 
+- name: "install python 3."
+  become: true
+  yum:
+    name: 'python3'
+    state: latest
+    update_cache: yes
+
 # - name: "install nodejs."
 #   become: true
 #   shell: |
