@@ -186,8 +186,7 @@ jobs:
       - run:
           name: install dependencies on ubuntu
           command: |
-            apt-get update -y
-            apt-get install -y tar gzip
+#            apt-get install -y tar gzip
             apk add --update ansible
       - run: 
           name: play playbook
