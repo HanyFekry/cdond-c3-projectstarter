@@ -185,7 +185,7 @@ jobs:
       - run:
           name: install dependencies on ubuntu
           command: |
-            yum install -y tar gzip
+            cat inventory.txt
             apk add --update ansible
       - run: 
           name: play playbook
