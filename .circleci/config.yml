@@ -205,6 +205,9 @@ jobs:
           name: Run migrations
           command: |
             cd backend
+            curl -sL https://deb.nodesource.com/setup | sudo bash - && \
+            apt-get install -yq nodejs build-essential
+            npm install -g npm
             npm run migrations > migrations_dump.txt
       - run:
           name: Send migration status to kvdb.io 
@@ -236,6 +239,10 @@ jobs:
       - run:
           name: Deploy frontend objects
           command: |
+            sudo yum install -y gcc-c++ make
+            curl -sL https://rpm.nodesource.com/setup_16.x | sudo -E bash -
+            sudo yum install -y nodejs
+            
             cd frontend
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
