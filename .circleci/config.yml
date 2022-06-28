@@ -260,7 +260,7 @@ jobs:
                     
   deploy-backend: 
     docker:
-      - image: cimg/python:3.10.5-node # python:3.10.5-alpine3.15
+      - image: python:3.10.5-alpine3.15 # cimg/python:3.10.5-node
     steps:
       - checkout
       - add_ssh_keys: 
@@ -268,9 +268,12 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: install ansible dependencies on ubuntu
+          name: install ansible dependencies on alpine
           command: |
             apk add --update ansible
+            apk add --update nodejs npm
+            apk add --update npm
+            echo npm --version
 #            apt-get install -y tar gzip
       - run: 
           name: Deploy backend
@@ -279,7 +282,6 @@ jobs:
             npm i
             npm run build
             cd ..
-            # Zip the directory
             tar -C backend -czvf artifact.tar.gz .
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
