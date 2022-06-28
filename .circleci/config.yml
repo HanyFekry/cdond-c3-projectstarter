@@ -164,6 +164,7 @@ jobs:
             aws ec2 describe-instances \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text >> .circleci/ansible/inventory.txt
+            cat .circleci/ansible/inventory.txt
       - persist_to_workspace:
           root: ~/
           paths:
@@ -185,7 +186,8 @@ jobs:
       - run:
           name: install dependencies on ubuntu
           command: |
-            sudo apt-get install -y tar gzip
+            apt-get update -y
+            apt-get install -y tar gzip
             apk add --update ansible
       - run: 
           name: play playbook
