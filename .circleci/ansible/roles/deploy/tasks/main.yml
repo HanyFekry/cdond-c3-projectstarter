@@ -5,7 +5,7 @@
     state: directory
 - name: unzip artifact
   shell: |
-    tar –xvzf artifact.tar.gz -c /home/ec2-user/app
+    tar –xvzf /project/artifact.tar.gz -c /home/ec2-user/app
 - name: start back-end
   shell: |
     pm2 stop default
