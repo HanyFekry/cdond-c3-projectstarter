@@ -30,6 +30,33 @@ commands:
             aws cloudformation delete-stack \
             --stack-name  <<parameters.front-stack>> \
             --region us-west-2
+      - run:
+          name: Delete all files in S3 bucket
+          when: on_fail
+          command: |
+            aws s3 rm s3://udapeople-hany123 --recursive
+
+  revert-migrations:
+    description: Revert the last migration
+    parameters:
+      workflow_id:
+        type: string 
+      kvdb_bucket:
+        type: string
+        default: CMcjJfUz81PF2Q36ti3Bbe             
+    steps:
+      - run:
+          name: Revert migrations
+          when: on_fail
+          command: |
+            SUCCESS=$(curl -H "token: e52b52de-ee26-41a5-86e8-e8dcc3d995a5" --request GET https://api.memstash.io/values/migration_<< parameters.workflow_id >>)
+            SUCCESS=$(curl --insecure  https://kvdb.io/<< parameters.kvdb_bucket >>/migration_<< parameters.workflow_id >>)
+            if (( $SUCCESS == 1 ));
+            then
+              cd ~/project/backend
+              npm install
+              npm run migration:revert
+            fi            
 
 jobs:
   deploy:
@@ -283,20 +310,62 @@ jobs:
             npm run build
             cd ..
             tar -C backend -czvf artifact.tar.gz .
-            mv artifact.tar.gz .circleci/ansible/roles/deploy/files
+            cp artifact.tar.gz .circleci/ansible/roles/deploy/files
             cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat inventory.txt
-      # - persist_to_workspace:
-      #     root: ~/app
-      #     paths:
-      #       - project/backend/*
-
       - run: 
           name: play playbook
           command: |
             cd .circleci/ansible
-            ansible-playbook -i inventory.txt deploy-backend.yml
+            ansible-playbook -i inventory.txt deploy-backend.yml  
+
+  smoke-test:
+    docker:
+      - image: cimg/node:lts
+    steps:
+      - checkout
+      - restore_cache:
+          keys: [frontend-build]
+      - run:
+          name: Install aws cli dependencies
+          command: |  
+            sudo apt-get update
+            sudo apt-get install awscli          
+#            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
+#            . ~/.nvm/nvm.sh
+#            nvm install --lts
+
+      - run:
+          name: Get backend url
+          command: |
+            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress')
+      - run:
+          name: Backend smoke test.
+          command: |
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+            if curl "${API_URL}/api/status" | grep "ok"
+            then
+                return 0
+            else
+                return 1
+            fi
+      - run:
+          name: Frontend smoke test.
+          command: |
+            URL="http://udapeople-${CIRCLE_WORKFLOW_ID:0:7}.s3-website-us-east-1.amazonaws.com/#/employees"            
+            echo ${URL} 
+            if curl -s ${URL} | grep "Welcome"
+            then
+                # Change this to 0 after the job fails
+              return 1
+            else
+              return 1
+            fi
+      - destroy-environment:
+          back-stack: "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
+          front-stack: "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
   #   docker:
   #     # Docker image here that supports Ansible
   #   steps:
