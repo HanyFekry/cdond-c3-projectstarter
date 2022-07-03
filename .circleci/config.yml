@@ -309,9 +309,11 @@ jobs:
             npm i
             npm run build
             cd ..
-            tar -C backend/src -czvf artifact.tar.gz .
+            tar -C backend -czvf artifact.tar.gz .
             cp ./artifact.tar.gz .circleci/ansible/roles/deploy/files
             ls .circleci/ansible/roles/deploy/files
+            echo "Contents  of the inventory.txt file is ------"
+            cat .circleci/ansible/inventory.txt
 #            cd .circleci/ansible
 #            echo "Contents  of .circleci/ansible/roles/deploy/files are ------"
 #            echo "Contents  of the inventory.txt file is ------"
@@ -320,7 +322,10 @@ jobs:
           name: play playbook
           command: |
             cd .circleci/ansible
-            ansible-playbook -i inventory.txt deploy-backend.yml  
+            ansible-playbook -i inventory.txt deploy-backend.yml
+      - destroy-environment:
+              back-stack: "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
+              front-stack: "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
 
   smoke-test:
     docker:
@@ -419,3 +424,7 @@ workflows:
       - deploy-backend: 
           requires:
             - configure_infrastructure
+      - smoke-test:
+          requires:
+            - deploy-backend
+            - deploy-frontend
