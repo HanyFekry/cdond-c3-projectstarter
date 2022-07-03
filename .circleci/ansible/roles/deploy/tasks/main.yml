@@ -10,26 +10,12 @@
     src: artifact.tar.gz
     dest: /home/ubuntu/app
 
-# - name: install ans start app
-#   command:  pm2 start main.js
-#   args:
-#     chdir: /home/ubuntu/app/dist
-#   environment:
-#       ENVIRONMENT: production
-#       TYPEORM_CONNECTION: "{{ lookup('env', 'TYPEORM_CONNECTION') }}"
-#       TYPEORM_MIGRATIONS_DIR: "./migrations"
-#       TYPEORM_MIGRATIONS: "./migrations/*.js"
-#       TYPEORM_ENTITIES: "./modules/domain/**/*.entity.js"
-#       TYPEORM_HOST: "{{ lookup('env', 'TYPEORM_HOST') }}"
-#       TYPEORM_PORT: "{{ lookup('env', 'TYPEORM_PORT') }}"
-#       TYPEORM_USERNAME: "{{ lookup('env', 'TYPEORM_USERNAME') }}"
-#       TYPEORM_PASSWORD: "{{ lookup('env', 'TYPEORM_PASSWORD') }}"
-#       TYPEORM_DATABASE: "{{ lookup('env', 'TYPEORM_DATABASE') }}"
-
 - name: start back-end
   shell: |
+    pm2 stop default
     cd /home/ubuntu/app
-    sudo npm run start
+    pm2 start npm -- start
+#    sudo npm run start
 #    npm install
 #    pm2 stop default
 #    pm2 start npm -- start
