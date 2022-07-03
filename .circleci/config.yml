@@ -356,7 +356,7 @@ jobs:
                 return 1
             fi
       - run:
-          name: Frontend smoke test.
+          name: Frontend smoke test
           command: |
             URL="http://udapeople-hany123.s3-website-us-east-1.amazonaws.com/#/employees"            
             echo ${URL} 
