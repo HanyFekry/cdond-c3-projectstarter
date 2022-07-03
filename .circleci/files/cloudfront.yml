@@ -5,7 +5,7 @@ Parameters:
   WorkflowID:
     Description: Unique identifier.
     Type: String
-    Default: udapeople-hany123
+    Default: hany123
 
 
 Resources:
@@ -39,3 +39,7 @@ Outputs:
     Description: URL for website hosted on S3
     Export:
       Name: WorkflowID
+  DomainName:
+    Value: !GetAtt WebpageCDN.DomainName
+    Export:
+      Name: DomainName
