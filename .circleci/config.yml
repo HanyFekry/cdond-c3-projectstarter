@@ -49,7 +49,6 @@ commands:
           name: Revert migrations
           when: on_fail
           command: |
-            SUCCESS=$(curl -H "token: e52b52de-ee26-41a5-86e8-e8dcc3d995a5" --request GET https://api.memstash.io/values/migration_<< parameters.workflow_id >>)
             SUCCESS=$(curl --insecure  https://kvdb.io/<< parameters.kvdb_bucket >>/migration_<< parameters.workflow_id >>)
             if (( $SUCCESS == 1 ));
             then
@@ -264,7 +263,7 @@ jobs:
       - run:
           name: Get backend url
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress')
+            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
@@ -345,7 +344,7 @@ jobs:
       - run:
           name: Backend smoke test.
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress')
+            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
             echo BACKEND_IP
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
@@ -367,9 +366,11 @@ jobs:
             else
               return 1
             fi
-      - destroy-environment:
-          back-stack: "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
-          front-stack: "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+      # - destroy-environment:
+      #     back-stack: "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
+      #     front-stack: "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+      # - revert-migrations::
+      #     workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
   #   docker:
   #     # Docker image here that supports Ansible
   #   steps:
