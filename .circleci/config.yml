@@ -382,26 +382,26 @@ jobs:
             else
               exit 1
             fi
-      - destroy-environment:
-          back-stack: "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
-          front-stack: "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
-      - revert-migrations:
-          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
-  #   docker:
-  #     # Docker image here that supports Ansible
-  #   steps:
-  #     # Checkout code from git
-  #     # Add ssh keys with fingerprint
-  #     # attach workspace
-  #     - run:
-  #         name: Install dependencies
-  #         command: |
-  #           # your code here
-  #     - run:
-  #         name: Deploy backend
-  #         command: |
-  #           # your code here
-  #     # Here's where you will add some code to rollback on failure  
+      # - destroy-environment:
+      #     back-stack: "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
+      #     front-stack: "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+      # - revert-migrations:
+      #     workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"  
+
+  cloudfront-update:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            echo hi
+      - run:
+          name: Update cloudfront distribution
+          command: |
+            echo hi
+  
 
 workflows:
   # deploy_and_notify:
