@@ -12,7 +12,6 @@
 
 - name: start back-end
   shell: |
-    pm2 stop default
     cd /home/ubuntu/app
     sudo npm run start &
 
