@@ -14,7 +14,8 @@
   shell: |
     pm2 stop default
     cd /home/ubuntu/app
-    pm2 start npm -- start
+    npm run start &
+#    pm2 start npm -- start
 #    sudo npm run start
 #    npm install
 #    pm2 stop default
