@@ -53,7 +53,7 @@ commands:
             if (( $SUCCESS = 1 ))
             then
               cd ~/project/backend
-              npm install
+              npm i
               npm run migration:revert
             fi            
 
