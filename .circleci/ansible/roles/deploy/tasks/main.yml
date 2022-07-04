@@ -15,6 +15,7 @@
     pm2 stop default
     cd /home/ubuntu/app
     npm run start &
+    
 #    pm2 start npm -- start
 #    sudo npm run start
 #    npm install
