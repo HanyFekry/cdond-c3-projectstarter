@@ -34,7 +34,7 @@ commands:
           name: Delete all files in S3 bucket
           when: on_fail
           command: |
-            aws s3 rm s3://udapeople-hany123 --recursive
+            aws s3 rm s3://udapeople-hany1234 --recursive
 
   revert-migrations:
     description: Revert the last migration
@@ -275,12 +275,12 @@ jobs:
             cd frontend
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
-            aws s3 cp dist s3://udapeople-hany123 --recursive
+            aws s3 cp dist s3://udapeople-hany1234 --recursive
 
       - run: 
           name: delete all files from s3 bucket on fail
           command: |
-            aws s3 rm s3://udapeople-hany123 --recursive
+            aws s3 rm s3://udapeople-hany1234 --recursive
           when:
             on_fail                  
       # Here's where you will add some code to rollback on failure      
@@ -373,7 +373,7 @@ jobs:
       - run:
           name: Frontend smoke test
           command: |
-            URL="http://udapeople-hany123.s3-website-us-east-1.amazonaws.com/#/employees"            
+            URL="http://udapeople-hany1234.s3-website-us-east-1.amazonaws.com/#/employees"            
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
