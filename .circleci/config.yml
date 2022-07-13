@@ -18,39 +18,34 @@ commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
     parameters:
-      back-stack:
-        type: string
-      front-stack:
-        type: string   
+      workflow_id:
+        type: string  
     steps:
       - run:
           name: destroy-environment
           when: on_fail
           command: |
             aws cloudformation delete-stack \
-            --stack-name <<parameters.back-stack>> \
+            --stack-name udapeople-backend-<<parameters.workflow_id>> \
             --region us-east-1
+            
+            aws s3 rm s3://udapeople-<<parameters.workflow_id>> --recursive
             
             aws cloudformation delete-stack \
-            --stack-name  <<parameters.front-stack>> \
+            --stack-name  udapeople-frontend-<<parameters.workflow_id>> \
             --region us-east-1
-            
-            aws s3 rm s3://udapeople-hany1234 --recursive
 
   revert-migrations:
     description: Revert the last migration
     parameters:
       workflow_id:
-        type: string 
-      kvdb_bucket:
         type: string
-        default: CMcjJfUz81PF2Q36ti3Bbe             
     steps:
       - run:
           name: Revert migrations
           when: on_fail
           command: |
-            SUCCESS=$(curl --insecure  https://kvdb.io/<< parameters.kvdb_bucket >>/migration_<< parameters.workflow_id >>)
+            SUCCESS=$(curl --insecure  https://kvdb.io/${KVDB_BUCKET}/migration_<< parameters.workflow_id >>)
             if (( $SUCCESS = 1 ))
             then
               cd ~/project/backend
@@ -171,19 +166,20 @@ jobs:
             --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
             --tags project=udapeople
-      # - run:
-      #     name: Ensure front-end infrastructure exist
-      #     command: |
-      #       aws cloudformation deploy \
-      #         --template-file .circleci/files/frontend.yml \
-      #         --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
-      #         --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
-      #         --tags project=udapeople 
+      - run:
+          name: Ensure front-end infrastructure exist
+          command: |
+            aws cloudformation deploy \
+              --template-file .circleci/files/frontend.yml \
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udapeople 
       - run:
           name: Add back-end ip to ansible inventory
           command: |
             echo [web] > .circleci/ansible/inventory.txt
             aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
             --query 'Reservations[*].Instances[*].PublicIpAddress' \
             --output text >> .circleci/ansible/inventory.txt
             cat .circleci/ansible/inventory.txt
@@ -192,8 +188,7 @@ jobs:
           paths:
             - project/.circleci/ansible/inventory.txt
       - destroy-environment:
-              back-stack: "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
-              front-stack: "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       # Here's where you will add some code to rollback on failur
 
   configure_infrastructure: 
@@ -215,11 +210,11 @@ jobs:
           command: |
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
-#            ansible-playbook -i inventory.txt playbook.yml
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
   run-migrations:
-    docker:
-      - image: cimg/node:lts  
+    << : *defaults 
     steps:
       - checkout
       - restore_cache:
@@ -235,10 +230,14 @@ jobs:
           command: |   
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
-            curl https://kvdb.io/CMcjJfUz81PF2Q36ti3Bbe/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
+            curl https://kvdb.io/${KVDB_BUCKET}/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
             else
             echo migration faild
             fi
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - revert-migrations:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
   deploy-frontend:
     docker:
@@ -334,8 +333,7 @@ jobs:
             cd .circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
       - destroy-environment:
-              back-stack: "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
-              front-stack: "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
   smoke-test:
     docker:
@@ -376,9 +374,8 @@ jobs:
             else
               exit 1
             fi
-      # - destroy-environment:
-      #     back-stack: "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
-      #     front-stack: "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
       # - revert-migrations:
       #     workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"  
 
@@ -433,13 +430,17 @@ workflows:
             - test-backend
             - scan-frontend
             - scan-backend
-      # - deploy_infrastructure
-      # - configure_infrastructure:
-      #     requires:
-      #       - deploy_infrastructure
-      # - run-migrations: 
-      #     requires:
-      #       - build-backend
+      - deploy_infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          filters:
+            branches:
+              only: master
+      - configure_infrastructure:
+          requires:
+            - deploy_infrastructure
+      - run-migrations: 
+          requires:
+            - build-backend
       # - deploy-frontend:
       #     requires:
       #       - build-frontend

@@ -4,23 +4,17 @@
   apt:
     upgrade: "yes"
 
-# - name: "install nodejs."
-#   become: true
-#   apt:
-#     name: ["nodejs","npm"]
-#     state: latest
-#     update_cache: yes
-- name: install nodejs 13
+- name: download nodejs 13
   shell: |
     curl -fsSL https://deb.nodesource.com/setup_13.x | sudo -E bash -
-    sudo apt-get install -y nodejs
+#    sudo apt-get install -y nodejs
 
-# - name: "install npm"
-#   become: true
-#   apt:
-#     name: "npm"
-#     state: latest
-#     update_cache: yes    
+- name: "install nodejs 13"
+  become: true
+  apt:
+    name: ["nodejs","npm"]
+    state: latest
+    update_cache: yes
 
 - name: "install pm."
   become: true
