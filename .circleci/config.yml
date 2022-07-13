@@ -8,6 +8,30 @@ defaults: &defaults
     - image: cimg/node:13.8.0
 #  working_directory: ~/project
 commands:
+  install_aws_cli:
+    description: install aws cli on ubuntu
+    steps:
+      - run:
+          command: |
+            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+            unzip awscliv2.zip
+            sudo ./aws/install
+  install_nodejs:
+    description: install nodejs 13 on ubuntu
+    steps:
+      - run:
+          command: |
+            curl -fsSL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+  install_ansible:
+    description: install ansible on ubuntu
+    steps:
+      - run:
+          command: |
+            sudo apt update
+            sudo apt install software-properties-common
+            sudo add-apt-repository --yes --update ppa:ansible/ansible
+            sudo apt install ansible
   notify_on_failure:
     description: notify on slack channel on failure
     steps:
@@ -193,17 +217,16 @@ jobs:
 
   configure_infrastructure: 
     docker:
-      - image: python:3.10.5-alpine3.15
+      - image: cimg/base:stable
     steps:
       - checkout
       - add_ssh_keys:
           fingerprints: ["98:9a:ac:c7:0f:24:ae:6e:00:6f:a9:54:f8:57:8d:e1"]
       - attach_workspace:
           at: ~/
-      - run:
-          name: install ansible dependencies on ubuntu
-          command: |
-            apk add --update ansible
+      - install_ansible
+      - install_nodejs
+      - install_aws_cli
 #            apt-get install -y tar gzip
       - run: 
           name: play playbook
@@ -422,14 +445,12 @@ workflows:
       - scan-backend:
           requires:
             - build-backend
-      - notify-on-success:
-          requires:
-            - build-frontend
-            - build-backend
-            - test-frontend
-            - test-backend
-            - scan-frontend
-            - scan-backend
+      # - notify-on-success:
+      #     requires:
+      #       - test-frontend
+      #       - test-backend
+      #       - scan-frontend
+      #       - scan-backend
       - deploy_infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
