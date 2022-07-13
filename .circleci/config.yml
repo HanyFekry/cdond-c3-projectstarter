@@ -426,13 +426,13 @@ workflows:
           requires:
             - build-backend
       - notify-on-success:
-        requires:
-          - build-frontend
-          - build-backend
-          - test-frontend
-          - test-backend
-          - scan-frontend
-          - scan-backend
+          requires:
+            - build-frontend
+            - build-backend
+            - test-frontend
+            - test-backend
+            - scan-frontend
+            - scan-backend
       # - deploy_infrastructure
       # - configure_infrastructure:
       #     requires:
