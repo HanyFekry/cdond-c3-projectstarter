@@ -17,23 +17,17 @@ commands:
         type: string   
     steps:
       - run:
-          name: Destroy back-end environments
+          name: destroy-environment
           when: on_fail
           command: |
             aws cloudformation delete-stack \
             --stack-name <<parameters.back-stack>> \
             --region us-east-1
-      - run:
-          name: Destroy front-end environments
-          when: on_fail
-          command: |
+            
             aws cloudformation delete-stack \
             --stack-name  <<parameters.front-stack>> \
             --region us-east-1
-      - run:
-          name: Delete all files in S3 bucket
-          when: on_fail
-          command: |
+            
             aws s3 rm s3://udapeople-hany1234 --recursive
 
   revert-migrations:
