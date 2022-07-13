@@ -183,7 +183,7 @@ jobs:
             yum install -y tar gzip
 #            sudo apt-get install tar.gz 
       - run:
-          name: Ensure back-end infrastructure exist
+          name: Ensure back-end infrastructure exists
           command: |
             aws cloudformation deploy \
             --template-file .circleci/files/backend.yml \
@@ -191,7 +191,7 @@ jobs:
             --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
             --tags project=udapeople
       - run:
-          name: Ensure front-end infrastructure exist
+          name: Ensure front-end infrastructure exists
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
