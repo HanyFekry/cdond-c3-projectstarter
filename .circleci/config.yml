@@ -397,11 +397,11 @@ jobs:
             echo hi
   notify-on-success:
     docker:
-      - image: cimg/base
+      - image: cimg/base:none
     steps:
       - slack/notify:
-          channel: cicd
           event: pass
+          channel: cicd
           template: success_tagged_deployment_1
   
 workflows:
