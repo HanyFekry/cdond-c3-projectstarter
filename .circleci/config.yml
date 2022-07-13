@@ -397,7 +397,7 @@ jobs:
             echo hi
   notify-on-success:
     docker:
-      - image: cimg/base:none
+      - image: cimg/node:lts
     steps:
       - slack/notify:
           event: pass
