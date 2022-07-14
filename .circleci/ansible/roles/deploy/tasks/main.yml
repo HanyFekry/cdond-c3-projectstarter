@@ -16,16 +16,16 @@
     npm i
 - name: start back-end
   shell: |
-    cd /home/ubuntu/app
+    cd /home/ubuntu/app/dist
     pm2 stop default
-    pm2 start "npm run start"
-    pm2 start npm -- start
-#    pm2 start dist/main.js
+    pm2 start dist/main.js
+#    pm2 start "npm run start"
+#    pm2 start npm -- start
 #    npm run start &
 - name: configure pm2 to start as a service
   become: true
   shell: |
-    env PATH=$PATH:/user/local/bin pm2 startup systemd -u ubintu --hp /home/ubuntu
+    env PATH=$PATH:/usr/local/bin pm2 startup systemd -u ubintu --hp /home/ubuntu
 
 #    pm2 start npm -- start
 #    sudo npm run start

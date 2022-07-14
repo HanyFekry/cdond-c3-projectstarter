@@ -278,18 +278,20 @@ jobs:
       - revert-migrations:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
-  deploy-frontend:
-    << : *defaults
+  deploy-frontend: 
+    docker:
+      - image: cimg/base:stable
     steps:
       - checkout
       - restore_cache:
           keys: [frontend-build]
+      - install_aws_cli
+      - install_nodejs
       - run:
-          name: Install aws cli dependencies
-          command: |  
-            sudo apt-get update
-            sudo apt-get install awscli 
-
+          name: install dependancies
+          command: |
+            cd frontend
+            npm install
       - run:
           name: Get backend url
           command: |
@@ -306,16 +308,12 @@ jobs:
           command: |
             cd frontend
             npm run build
-            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-
-      - run: 
-          name: delete all files from s3 bucket on fail
-          command: |
-            aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-          when:
-            on_fail                  
-      # Here's where you will add some code to rollback on failure      
+#            tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
+      - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - revert-migrations:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
                     
   deploy-backend: 
     docker:
@@ -326,9 +324,16 @@ jobs:
           fingerprints: ["98:9a:ac:c7:0f:24:ae:6e:00:6f:a9:54:f8:57:8d:e1"]
       - attach_workspace:
           at: ~/
+      - restore_cache:
+          keys: [backend-build]
       - install_ansible
       - install_nodejs
       - install_aws_cli
+      - run:
+          name: install dependancies
+          command: |
+            cd backend
+            npm install
 #            apt-get install -y tar gzip
       - run:
           name: Init Env. Variables
@@ -349,11 +354,10 @@ jobs:
           name: Deploy backend
           command: |
             cd backend
-            npm i
             npm run build
+            tar -czf artifact.tar.gz dist/* package*
             cd ..
-            tar -C backend -czvf artifact.tar.gz .
-            cp ./artifact.tar.gz .circleci/ansible/roles/deploy/files
+            cp backend/artifact.tar.gz .circleci/ansible/roles/deploy/files
             ls .circleci/ansible/roles/deploy/files
             echo "Contents  of the inventory.txt file is ------"
             cat .circleci/ansible/inventory.txt
@@ -367,6 +371,8 @@ jobs:
             cd .circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
       - destroy-environment:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+      - revert-migrations:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
   smoke-test:
