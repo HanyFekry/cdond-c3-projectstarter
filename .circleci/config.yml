@@ -279,8 +279,7 @@ jobs:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
   deploy-frontend:
-    docker:
-      - image: cimg/node:lts
+    << : *defaults
     steps:
       - checkout
       - restore_cache:
@@ -289,15 +288,15 @@ jobs:
           name: Install aws cli dependencies
           command: |  
             sudo apt-get update
-            sudo apt-get install awscli          
-#            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
-#            . ~/.nvm/nvm.sh
-#            nvm install --lts
+            sudo apt-get install awscli 
 
       - run:
           name: Get backend url
           command: |
-            export BACKEND_IP=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].PublicIpAddress' --output text)
+            export BACKEND_IP=$(aws ec2 describe-instances \
+            --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+            --query 'Reservations[*].Instances[*].PublicIpAddress' \
+            --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
@@ -308,32 +307,28 @@ jobs:
             cd frontend
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
-            aws s3 cp dist s3://udapeople-hany1234 --recursive
+            aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
 
       - run: 
           name: delete all files from s3 bucket on fail
           command: |
-            aws s3 rm s3://udapeople-hany1234 --recursive
+            aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
           when:
             on_fail                  
       # Here's where you will add some code to rollback on failure      
                     
   deploy-backend: 
     docker:
-      - image: python:3.10.5-alpine3.15 # cimg/python:3.10.5-node
+      - image: cimg/base:stable
     steps:
       - checkout
-      - add_ssh_keys: 
+      - add_ssh_keys:
           fingerprints: ["98:9a:ac:c7:0f:24:ae:6e:00:6f:a9:54:f8:57:8d:e1"]
       - attach_workspace:
           at: ~/
-      - run:
-          name: install ansible dependencies on alpine
-          command: |
-            apk add --update ansible
-            apk add --update nodejs npm
-            apk add --update npm
-            echo npm --version
+      - install_ansible
+      - install_nodejs
+      - install_aws_cli
 #            apt-get install -y tar gzip
       - run:
           name: Init Env. Variables
@@ -479,13 +474,13 @@ workflows:
       - run-migrations: 
           requires:
             - configure_infrastructure
-      # - deploy-frontend:
-      #     requires:
-      #       - build-frontend
-      #       - configure_infrastructure
-      # - deploy-backend: 
-      #     requires:
-      #       - configure_infrastructure
+      - deploy-frontend:
+          requires:
+            - build-frontend
+            - configure_infrastructure
+      - deploy-backend: 
+          requires:
+            - configure_infrastructure
       # - smoke-test:
       #     requires:
       #       - deploy-backend
