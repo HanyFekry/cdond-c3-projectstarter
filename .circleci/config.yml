@@ -335,19 +335,6 @@ jobs:
             cd backend
             npm install
 #            apt-get install -y tar gzip
-      - run:
-          name: Init Env. Variables
-          command: |
-            cd backend/dist
-            export TYPEORM_HOST="uda-srv1.cxeyfou6uwxt.us-east-1.rds.amazonaws.com"
-            export TYPEORM_MIGRATIONS_DIR=./migrations
-            export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
-            export TYPEORM_MIGRATIONS=./migrations/*{.ts,.js}
-#            echo TYPEORM_PORT=$TYPEORM_PORT >> ".env"
-#            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ".env"
-#            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
-#            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
-#            echo TYPEORM_HOST="uda-srv1.cxeyfou6uwxt.us-east-1.rds.amazonaws.com" >> ".env"
           
       - run: 
           name: Deploy backend
@@ -357,15 +344,20 @@ jobs:
             tar -czf artifact.tar.gz dist/* package*
             cd ..
             cp backend/artifact.tar.gz .circleci/ansible/roles/deploy/files
-            ls .circleci/ansible/roles/deploy/files
-            echo "Contents  of the inventory.txt file is ------"
-            cat .circleci/ansible/inventory.txt
-#            cd .circleci/ansible
-#            echo "Contents  of .circleci/ansible/roles/deploy/files are ------"
-#            echo "Contents  of the inventory.txt file is ------"
-#            cat inventory.txt
+      - run:
+          name: Init Env. Variables
+          command: |
+            export TYPEORM_HOST="uda-srv1.cxeyfou6uwxt.us-east-1.rds.amazonaws.com"
+            export TYPEORM_MIGRATIONS_DIR=./migrations
+            export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
+            export TYPEORM_MIGRATIONS=./migrations/*{.ts,.js}
+#            echo TYPEORM_PORT=$TYPEORM_PORT >> ".env"
+#            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ".env"
+#            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
+#            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
+#            echo TYPEORM_HOST="uda-srv1.cxeyfou6uwxt.us-east-1.rds.amazonaws.com" >> ".env"
       - run: 
-          name: play playbook
+          name: play playbook deploy-backend
           command: |
             cd .circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
