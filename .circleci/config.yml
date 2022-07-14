@@ -263,6 +263,7 @@ jobs:
           name: Run migrations
           command: |
             cd backend
+            ls
             npm install
             npm run migrations > migrations_dump.txt
       - run:
@@ -271,8 +272,6 @@ jobs:
             if grep -q "has been executed successfully." ~/project/backend/migrations_dump.txt
             then
             curl https://kvdb.io/${KVDB_BUCKET}/migration_${CIRCLE_WORKFLOW_ID:0:7}  -d '1'
-            else
-            echo migration faild
             fi
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
