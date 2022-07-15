@@ -21,8 +21,10 @@ commands:
     steps:
       - run:
           command: |
-            curl -fsSL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+            curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
             sudo apt-get install -y nodejs
+            sudo npm install -g n
+            sudo n 13.8.0
   install_ansible:
     description: install ansible on ubuntu
     steps:
@@ -354,21 +356,13 @@ jobs:
       - revert-migrations:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
 
-  smoke-test:
+  smoke-test: 
     docker:
-      - image: cimg/node:lts
+      - image: cimg/base:stable
     steps:
       - checkout
-      - restore_cache:
-          keys: [frontend-build]
-      - run:
-          name: Install aws cli dependencies
-          command: |  
-            sudo apt-get update
-            sudo apt-get install awscli          
-#            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
-#            . ~/.nvm/nvm.sh
-#            nvm install --lts
+      - install_aws_cli
+      - install_nodejs
       - run:
           name: Backend smoke test.
           command: |
@@ -396,10 +390,10 @@ jobs:
             else
               exit 1
             fi
-      - destroy-environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
-      - revert-migrations:
-          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"  
+      # - destroy-environment:
+      #     workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
+      # - revert-migrations:
+      #     workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"  
 
   cloudfront-update:
     docker:
