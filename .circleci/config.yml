@@ -333,23 +333,24 @@ jobs:
           command: |
             cd backend
             npm install
-#            apt-get install -y tar gzip
-          
+#            apt-get install -y tar gzip          
       - run: 
           name: Deploy backend
           command: |
             cd backend
             npm run build
-            tar -czvf artifact.tar.gz dist/* package*
+            tar -czf artifact.tar.gz dist/* package*
             cd ..
             cp backend/artifact.tar.gz .circleci/ansible/roles/deploy/files
 #            tar -czf artifact.tar.gz dist/* package*
       - run: 
           name: play playbook deploy-backend
           command: |
+            export TYPEORM_HOST='uda-srv1.cxeyfou6uwxt.us-east-1.rds.amazonaws.com'
+            export TYPEORM_CONNECTION='postgres'
             export TYPEORM_MIGRATIONS_DIR='./migrations'
             export TYPEORM_ENTITIES='./modules/domain/**/*.entity{.ts,.js}'
-            export TYPEORM_MIGRATIONS='./migrations/*.ts'
+            export TYPEORM_MIGRATIONS='./migrations/*{.ts,.js}'
 
             cd .circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml

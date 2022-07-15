@@ -13,7 +13,7 @@
 - name: install back-end
   shell: |
     cd ~/app
-    npm i
+    npm install
 
 - name: start back-end
   shell: |
@@ -25,7 +25,7 @@
 - name: configure pm2 to start as a service
   become: true
   shell: |
-    env PATH=$PATH:/usr/local/bin pm2 startup systemd -u ubuntu --hp /home/ubuntu
+    env PATH=$PATH:/usr/local/bin pm2 startup systemd -u ubuntu --hp ~
 
 #    pm2 start npm -- start
 #    sudo npm run start
