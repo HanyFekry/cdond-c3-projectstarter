@@ -409,13 +409,10 @@ jobs:
       - image: cimg/base:stable
     steps:
       - checkout
+      - install_aws_cli
+      - install_nodejs
       - run:
-          name: Install dependencies
-          command: |
-            install_aws_cli
-            install_nodejs
-      - run:
-          name: Update cloudfront distribution
+          name: store OldWorkflowID
           command: |
             export OldWorkflowID=$(aws cloudformation list-exports \
             --query "Exports[?Name==\`WorkflowID\`].Value" \
@@ -423,12 +420,15 @@ jobs:
             echo $OldWorkflowID >> ~/OldWorkflowID.txt
             cat ~/OldWorkflowID.txt
             curl https://kvdb.io/${KVDB_BUCKET}/OldWorkflowID  -d $OldWorkflowID
+            echo OldWorkflowID=$OldWorkflowID
+      - run:
+          name: Update cloudfront distribution
+          command: |
             aws cloudformation deploy \
             --template-file .circleci/files/cloudfront.yml \
             --stack-name InitialStack \
             --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
             --tags project=udapeople
-            echo OldWorkflowID=$OldWorkflowID
             echo CurrentWokflowId=${CIRCLE_WORKFLOW_ID:0:7}
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
