@@ -1,28 +1,10 @@
 ---
-- name: "upgrade packages."
-  become: true
-  apt:
-    upgrade: "yes"
-
 - name: download & install nodejs 13
   shell: |
-    curl -fsSL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
     sudo apt-get install -y nodejs
-
-# - name: "install nodejs 13"
-#   become: true
-#   apt:
-#     name: ["nodejs","npm"]
-#     state: latest
-#     update_cache: yes
-
-- name: "install pm."
-  become: true
-  npm:
-    name: pm
-    global: yes
-    production: yes
-    state: latest
+    sudo npm install -g n
+    sudo n 13.8.0
 
 - name: "install pm2"
   become: true

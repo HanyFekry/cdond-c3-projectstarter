@@ -243,8 +243,10 @@ jobs:
       - install_aws_cli
       - add_ssh_keys: 
           fingerprints: ["98:9a:ac:c7:0f:24:ae:6e:00:6f:a9:54:f8:57:8d:e1"]
+      - restore_cache:
+          keys: [backend-build]
       - run:
-          name: Init Env. Variables
+          name: Run migrations
           command: |
             cd backend
             export TYPEORM_HOST="uda-srv1.cxeyfou6uwxt.us-east-1.rds.amazonaws.com"
@@ -257,12 +259,6 @@ jobs:
             echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
             echo TYPEORM_HOST="uda-srv1.cxeyfou6uwxt.us-east-1.rds.amazonaws.com" >> ".env"
-      - restore_cache:
-          keys: [backend-build]
-      - run:
-          name: Run migrations
-          command: |
-            cd backend
             ls
             npm install
             npm run migrations > migrations_dump.txt
@@ -341,25 +337,18 @@ jobs:
           command: |
             cd backend
             npm run build
+            tar -czvf artifact.tar.gz dist/* package*
             cd ..
-            tar -C backend -czvf artifact.tar.gz .
-            cp ./artifact.tar.gz .circleci/ansible/roles/deploy/files
+            cp backend/artifact.tar.gz .circleci/ansible/roles/deploy/files
 #            tar -czf artifact.tar.gz dist/* package*
-      - run:
-          name: Init Env. Variables
+      - run: 
+          name: play playbook deploy-backend
           command: |
             export TYPEORM_HOST="uda-srv1.cxeyfou6uwxt.us-east-1.rds.amazonaws.com"
             export TYPEORM_MIGRATIONS_DIR=./migrations
             export TYPEORM_ENTITIES=./modules/domain/**/*.entity{.ts,.js}
             export TYPEORM_MIGRATIONS=./migrations/*{.ts,.js}
-#            echo TYPEORM_PORT=$TYPEORM_PORT >> ".env"
-#            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> ".env"
-#            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> ".env"
-#            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> ".env"
-#            echo TYPEORM_HOST="uda-srv1.cxeyfou6uwxt.us-east-1.rds.amazonaws.com" >> ".env"
-      - run: 
-          name: play playbook deploy-backend
-          command: |
+
             cd .circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
       - destroy-environment:
@@ -408,8 +397,8 @@ jobs:
             fi
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
-      # - revert-migrations:
-      #     workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"  
+      - revert-migrations:
+          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"  
 
   cloudfront-update:
     docker:
@@ -434,55 +423,50 @@ jobs:
           template: success_tagged_deploy_1
   
 workflows:
-  test:
-    jobs:
-      - deploy_infrastructure
-  # # deploy_and_notify:
-  # #   jobs:
-  # #     - deploy:
-  # #         context: slack
-  # default:
+  # deploy_and_notify:
   #   jobs:
-  #     - build-frontend
-  #     - build-backend
-  #     - test-frontend:
-  #         requires:
-  #           - build-frontend
-  #     - test-backend:
-  #         requires:
-  #           - build-backend
-  #     - scan-frontend:
-  #         requires:
-  #           - build-frontend
-  #     - scan-backend:
-  #         requires:
-  #           - build-backend
-  #     # - notify-on-success:
-  #     #     requires:
-  #     #       - test-frontend
-  #     #       - test-backend
-  #     #       - scan-frontend
-  #     #       - scan-backend
-  #     - deploy_infrastructure:
-  #         requires: #[test-frontend, test-backend, scan-frontend, scan-backend]
-  #           - build-backend
-  #         filters:
-  #           branches:
-  #             only: master
-  #     - configure_infrastructure:
-  #         requires:
-  #           - deploy_infrastructure
-  #     - run-migrations: 
-  #         requires:
-  #           - configure_infrastructure
-  #     - deploy-frontend:
-  #         requires:
-  #           - build-frontend
-  #           - configure_infrastructure
-  #     - deploy-backend: 
-  #         requires:
-  #           - configure_infrastructure
-  #     # - smoke-test:
-  #     #     requires:
-  #     #       - deploy-backend
-  #     #       - deploy-frontend
+  #     - deploy:
+  #         context: slack
+  default:
+    jobs:
+      - build-frontend
+      - build-backend
+      - test-frontend:
+          requires:
+            - build-frontend
+      - test-backend:
+          requires:
+            - build-backend
+      - scan-frontend:
+          requires:
+            - build-frontend
+      - scan-backend:
+          requires:
+            - build-backend
+      # - notify-on-success:
+      #     requires:
+      #       - test-frontend
+      #       - test-backend
+      #       - scan-frontend
+      #       - scan-backend
+      - deploy_infrastructure:
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          filters:
+            branches:
+              only: master
+      - configure_infrastructure:
+          requires:
+            - deploy_infrastructure
+      - run-migrations: 
+          requires:
+            - configure_infrastructure
+      - deploy-frontend:
+          requires:
+            - run-migrations
+      - deploy-backend: 
+          requires:
+            - run-migrations
+      - smoke-test:
+          requires:
+            - deploy-backend
+            - deploy-frontend
