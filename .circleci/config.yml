@@ -476,10 +476,6 @@ jobs:
           template: success_tagged_deploy_1
   
 workflows:
-  # deploy_and_notify:
-  #   jobs:
-  #     - deploy:
-  #         context: slack
   default:
     jobs:
       - build-frontend
@@ -503,7 +499,7 @@ workflows:
       #       - scan-frontend
       #       - scan-backend
       - deploy_infrastructure:
-#          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
             branches:
               only: master
