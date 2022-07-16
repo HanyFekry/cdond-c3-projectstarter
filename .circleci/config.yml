@@ -420,6 +420,7 @@ jobs:
             --no-paginate --output text)
             echo $OldWorkflowID >> ~/OldWorkflowID.txt
             cat ~/OldWorkflowID.txt
+            curl https://kvdb.io/${KVDB_BUCKET}/OldWorkflowID -XDELETE 
             curl https://kvdb.io/${KVDB_BUCKET}/OldWorkflowID  -d ${OldWorkflowID}
             echo OldWorkflowID=$OldWorkflowID
       - run:
@@ -444,16 +445,14 @@ jobs:
       - install_aws_cli
       - install_nodejs
       - run:
-          name: Get old stack workflow id
+          name: Remove old stacks and files
           command: |
             export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
             --stack-status-filter CREATE_COMPLETE --no-paginate --output text)) 
             echo Stack names: "${STACKS[@]}"
             export OldWorkflowID=$(curl --insecure https://kvdb.io/${KVDB_BUCKET}/OldWorkflowID)
             echo OldWorkflowID: $OldWorkflowID
-      - run:
-          name: Remove old stacks and files
-          command: |
+
             if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
             then
               aws cloudformation delete-stack \
@@ -466,10 +465,6 @@ jobs:
               --stack-name  udapeople-frontend-${OldWorkflowID} \
               --region ${AWS_DEFAULT_REGION}
             fi
-      - destroy-environment:
-          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
-      - revert-migrations:
-          workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}" 
 
   notify-on-success:
     docker:
