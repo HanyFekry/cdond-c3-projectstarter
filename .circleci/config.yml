@@ -354,12 +354,6 @@ jobs:
             
             cd .circleci/ansible
             ansible-playbook -i inventory.txt deploy-backend.yml
-#            export TYPEORM_HOST='uda-srv1.cxeyfou6uwxt.us-east-1.rds.amazonaws.com'
-#            export TYPEORM_CONNECTION='postgres'
-#            export TYPEORM_PORT=5432
-#            export TYPEORM_USERNAME=postgres
-#            export TYPEORM_PASSWORD=passw0rd
-#            export TYPEORM_DATABASE=mydb
 
       - destroy-environment:
           workflow_id: "${CIRCLE_WORKFLOW_ID:0:7}"
@@ -396,7 +390,7 @@ jobs:
             echo ${URL} 
             if curl -s ${URL} | grep "Welcome"
             then
-              exit 0
+              exit 1
             else
               exit 1
             fi
